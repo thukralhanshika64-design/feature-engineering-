@@ -128,7 +128,11 @@ if data_source == "Upload CSV":
     st.subheader("Upload cleanup summary")
     st.write(f"Numeric feature columns after cleaning: {X.shape[1]}")
     st.write(f"Target column: {target_name}")
-        st.write(f"Missing numeric values filled: {missing_count}")
+    st.write(f"Missing numeric values filled: {missing_count}")
+    if dropped_non_numeric:
+        st.warning("Some columns were removed before feature selection because they were non-numeric or could not be converted to numeric values.")
+        with st.expander("View removed columns"):
+            st.write(dropped_non_numeric)
     else:
         st.info("All uploaded feature columns were numeric or converted successfully.")
 
