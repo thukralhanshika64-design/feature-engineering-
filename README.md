@@ -1,56 +1,115 @@
 # Feature Selection App
 
-This workspace contains a deployable Streamlit app for feature selection on high-dimensional datasets.
+> An interactive Streamlit app for intelligent feature selection on high-dimensional datasets — with variance filtering, correlation pruning, and model-based importance ranking.
 
-## What is included
+**Live Demo → [wyvccqyvf8fxg2mmgs82g5.streamlit.app](https://wyvccqyvf8fxg2mmgs82g5.streamlit.app/)**
 
-- `app.py` — Streamlit application for dataset upload, variance filtering, correlation filtering, and model-based feature selection.
-- `feature_selection.py` — reusable feature selection helper functions.
-- `requirements.txt` — dependencies for local execution and deployment.
+---
+
+## What it does
+
+Feature selection is one of the most critical (and often overlooked) steps in the ML pipeline. This app automates a 3-stage pipeline that takes a high-dimensional dataset and outputs only the features that matter:
+
+| Stage | Method | What it removes |
+|---|---|---|
+| 1 | Variance filter | Near-constant columns with almost no signal |
+| 2 | Correlation filter | Redundant features strongly correlated with another |
+| 3 | Model-based selection | Low-importance features ranked by a Random Forest |
+
+The app auto-detects whether your target is a **classification** or **regression** problem and switches the underlying model accordingly — no configuration needed.
+
+---
+
+## Features
+
+- **Synthetic dataset mode** — generate a configurable high-dimensional classification dataset instantly, no upload required
+- **CSV upload mode** — bring your own dataset; non-numeric columns are handled automatically
+- **Auto task detection** — uses `RandomForestClassifier` for categorical targets and `RandomForestRegressor` for continuous ones
+- **Interactive controls** — tune variance threshold, correlation threshold, importance threshold, and number of trees from the sidebar
+- **Feature importance chart** — visualise which features survived and why, with a styled top-20 bar chart
+- **One-click download** — export the cleaned, selected-feature dataset as CSV
+
+---
+
+## Tech stack
+
+- **Python 3.10+**
+- **Streamlit** — UI and deployment
+- **scikit-learn** — `VarianceThreshold`, `SelectFromModel`, `RandomForestClassifier/Regressor`
+- **pandas / numpy** — data handling and preprocessing
+
+---
 
 ## Run locally
 
-1. Open a terminal in this folder.
-2. Create or activate a Python environment with Python 3.10+.
-3. Install dependencies:
+```bash
+# 1. Clone the repo
+git clone https://github.com/thukralhanshika64-design/feature-engineering-.git
+cd feature-engineering-
 
-   ```bash
-   python -m pip install -r requirements.txt
-   ```
+# 2. Install dependencies
+pip install -r requirements.txt
 
-4. Run the app:
+# 3. Launch the app
+streamlit run app.py
+```
 
-   ```bash
-   streamlit run app.py
-   ```
+Open the URL shown in your terminal (usually `http://localhost:8501`).
 
-5. Open the browser URL shown by Streamlit.
+---
 
-## Deploy
+## Project structure
 
-### Streamlit Community Cloud
+```
+feature-engineering-/
+├── app.py                # Streamlit UI — layout, controls, pipeline orchestration
+├── feature_selection.py  # Core logic — variance, correlation, model-based filters
+├── requirements.txt      # Pinned dependencies for local and cloud deployment
+├── data.ipynb            # Exploratory data analysis notebook
+└── README.md
+```
 
-1. Push this repository to GitHub.
-2. Create a new app in Streamlit Community Cloud.
-3. Connect the GitHub repository and branch.
-4. Streamlit will use `requirements.txt` and run `app.py` automatically.
+---
 
-### Other platforms
+## How the pipeline works
 
-- Use any platform that supports Python and Streamlit.
-- Ensure `requirements.txt` is installed.
-- Run `streamlit run app.py` or use a container/managed service.
+```
+Raw dataset (N features)
+        │
+        ▼
+┌─────────────────────┐
+│   Variance filter   │  Drops features below variance threshold
+└─────────────────────┘
+        │
+        ▼
+┌─────────────────────┐
+│ Correlation filter  │  Drops one of each highly correlated pair
+└─────────────────────┘
+        │
+        ▼
+┌─────────────────────┐
+│  Random Forest      │  Fits model, ranks feature importances
+│  (auto: clf/reg)    │  Keeps features above median/mean threshold
+└─────────────────────┘
+        │
+        ▼
+Selected features (download as CSV)
+```
 
-## Notes
+---
 
-- The app supports both a synthetic example dataset and CSV upload.
-- If you upload a CSV, select the target column before running selection.
-- The app attempts to convert numeric-looking text columns to numeric values automatically.
-- Non-numeric columns and columns that become entirely empty after conversion are removed before feature selection.
-- Missing numeric values are filled with the median of their column.
-- The final selected feature dataset can be downloaded as CSV.
+## Deploy your own copy
 
-## GitHub and deployment
+### Streamlit Community Cloud (free)
 
-- This project is pushed to GitHub on the `main` branch.
-- Use Streamlit Community Cloud or any Python-compatible host to deploy the app.
+1. Fork this repository
+2. Go to [share.streamlit.io](https://share.streamlit.io)
+3. Click **New app** → connect your fork → set main file to `app.py`
+4. Deploy — done in under 2 minutes
+
+---
+
+## Author
+
+**Hanshika Thukral**
+[GitHub](https://github.com/thukralhanshika64-design) · [LinkedIn](https://linkedin.com/in/hanshika-thukral)
