@@ -1,3 +1,4 @@
+import numpy as np
 import streamlit as st
 import pandas as pd
 
@@ -7,6 +8,29 @@ from feature_selection import (
     model_selection,
     variance_filter,
 )
+
+
+def prepare_uploaded_data(df: pd.DataFrame, target_column: str):
+    """Keep only numeric feature columns and fill missing values."""
+    y = df[target_column].copy()
+    X = df.drop(columns=[target_column])
+
+    # Convert string numeric columns to actual numeric values when possible.
+    X_converted = X.apply(lambda col: pd.to_numeric(col, errors="coerce") if col.dtype == object else col)
+
+    # Drop columns that are still non-numeric after conversion.
+    X_numeric = X_converted.select_dtypes(include=[np.number]).copy()
+    dropped_non_numeric = X.columns.difference(X_numeric.columns).tolist()
+
+    if X_numeric.empty:
+        raise ValueError(
+            "Uploaded CSV has no numeric feature columns. Please upload a dataset with numeric inputs."
+        )
+
+    if X_numeric.isna().any().any():
+        X_numeric = X_numeric.fillna(X_numeric.median())
+
+    return X_numeric, y, dropped_non_numeric
 
 st.set_page_config(page_title="Feature Selection App", layout="wide")
 st.title("Feature Selection for High-Dimensional Data")
@@ -69,8 +93,17 @@ else:
         st.stop()
 
     target_name = target_column
-    y = df[target_column].copy()
-    X = df.drop(columns=[target_column])
+    try:
+        X, y, dropped_non_numeric = prepare_uploaded_data(df, target_column)
+    except ValueError as exc:
+        st.error(str(exc))
+        st.stop()
+
+    if dropped_non_numeric:
+        st.warning(
+            "The following non-numeric columns were removed before feature selection: "
+            + ", ".join(dropped_non_numeric)
+        )
 
 st.sidebar.markdown("---")
 st.sidebar.write("Selected features will be generated based on the current settings.")
