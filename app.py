@@ -22,9 +22,15 @@ def prepare_uploaded_data(df: pd.DataFrame, target_column: str):
     X_numeric = X_converted.select_dtypes(include=[np.number]).copy()
     dropped_non_numeric = X.columns.difference(X_numeric.columns).tolist()
 
+    # Drop any columns that became all-NaN after conversion.
+    all_nan_cols = X_numeric.columns[X_numeric.isna().all()].tolist()
+    if all_nan_cols:
+        X_numeric = X_numeric.drop(columns=all_nan_cols)
+        dropped_non_numeric.extend(all_nan_cols)
+
     if X_numeric.empty:
         raise ValueError(
-            "Uploaded CSV has no numeric feature columns. Please upload a dataset with numeric inputs."
+            "Uploaded CSV has no numeric feature columns after cleaning. Please upload a dataset with numeric inputs."
         )
 
     if X_numeric.isna().any().any():
@@ -118,14 +124,18 @@ st.subheader("Preview of the first 5 rows")
 st.dataframe(pd.concat([X.head(), y.head()], axis=1))
 
 with st.spinner("Applying feature selection steps..."):
-    df_variance, variance_cols = variance_filter(X, threshold=variance_threshold)
-    df_correlation, dropped_corr = correlation_filter(df_variance, threshold=correlation_threshold)
-    X_final, selected_features = model_selection(
-        df_correlation,
-        y,
-        threshold=importance_threshold,
-        n_estimators=n_estimators,
-    )
+    try:
+        df_variance, variance_cols = variance_filter(X, threshold=variance_threshold)
+        df_correlation, dropped_corr = correlation_filter(df_variance, threshold=correlation_threshold)
+        X_final, selected_features = model_selection(
+            df_correlation,
+            y,
+            threshold=importance_threshold,
+            n_estimators=n_estimators,
+        )
+    except Exception as exc:
+        st.error(f"Feature selection failed: {exc}")
+        st.stop()
 
 st.header("Feature selection results")
 step_cols = st.columns(3)
