@@ -45,4 +45,12 @@ This workspace contains a deployable Streamlit app for feature selection on high
 
 - The app supports both a synthetic example dataset and CSV upload.
 - If you upload a CSV, select the target column before running selection.
+- The app attempts to convert numeric-looking text columns to numeric values automatically.
+- Non-numeric columns and columns that become entirely empty after conversion are removed before feature selection.
+- Missing numeric values are filled with the median of their column.
 - The final selected feature dataset can be downloaded as CSV.
+
+## GitHub and deployment
+
+- This project is pushed to GitHub on the `main` branch.
+- Use Streamlit Community Cloud or any Python-compatible host to deploy the app.
