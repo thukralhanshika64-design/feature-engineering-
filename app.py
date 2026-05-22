@@ -33,10 +33,11 @@ def prepare_uploaded_data(df: pd.DataFrame, target_column: str):
             "Uploaded CSV has no numeric feature columns after cleaning. Please upload a dataset with numeric inputs."
         )
 
-    if X_numeric.isna().any().any():
+    missing_count = int(X_numeric.isna().sum().sum())
+    if missing_count > 0:
         X_numeric = X_numeric.fillna(X_numeric.median())
 
-    return X_numeric, y, dropped_non_numeric
+    return X_numeric, y, dropped_non_numeric, missing_count
 
 st.set_page_config(page_title="Feature Selection App", layout="wide")
 st.title("Feature Selection for High-Dimensional Data")
@@ -100,7 +101,7 @@ else:
 
     target_name = target_column
     try:
-        X, y, dropped_non_numeric = prepare_uploaded_data(df, target_column)
+        X, y, dropped_non_numeric, missing_count = prepare_uploaded_data(df, target_column)
     except ValueError as exc:
         st.error(str(exc))
         st.stop()
@@ -127,10 +128,7 @@ if data_source == "Upload CSV":
     st.subheader("Upload cleanup summary")
     st.write(f"Numeric feature columns after cleaning: {X.shape[1]}")
     st.write(f"Target column: {target_name}")
-    if dropped_non_numeric:
-        st.warning("Some columns were removed before feature selection because they were non-numeric or could not be converted to numeric values.")
-        with st.expander("View removed columns"):
-            st.write(dropped_non_numeric)
+        st.write(f"Missing numeric values filled: {missing_count}")
     else:
         st.info("All uploaded feature columns were numeric or converted successfully.")
 
