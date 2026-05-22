@@ -123,6 +123,17 @@ col2.metric("Target values", len(y.unique()) if hasattr(y, 'unique') else len(y)
 st.subheader("Preview of the first 5 rows")
 st.dataframe(pd.concat([X.head(), y.head()], axis=1))
 
+if data_source == "Upload CSV":
+    st.subheader("Upload cleanup summary")
+    st.write(f"Numeric feature columns after cleaning: {X.shape[1]}")
+    st.write(f"Target column: {target_name}")
+    if dropped_non_numeric:
+        st.warning("Some columns were removed before feature selection because they were non-numeric or could not be converted to numeric values.")
+        with st.expander("View removed columns"):
+            st.write(dropped_non_numeric)
+    else:
+        st.info("All uploaded feature columns were numeric or converted successfully.")
+
 with st.spinner("Applying feature selection steps..."):
     try:
         df_variance, variance_cols = variance_filter(X, threshold=variance_threshold)
